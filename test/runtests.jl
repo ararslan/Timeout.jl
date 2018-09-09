@@ -1,4 +1,4 @@
-using Distributed
+using Compat.Distributed
 
 if nprocs() > 1
     error("For the Timeout package's tests to be reliable, Julia must be started with" *
@@ -10,8 +10,8 @@ end
 addprocs(2)
 
 using Timeout
-using Test
-using Dates
+using Compat.Test
+using Compat.Dates
 
 #@testset "No process available" begin
 #    @test_throws ArgumentError ptimeout(()->1, 20, worker=2)

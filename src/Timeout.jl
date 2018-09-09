@@ -1,9 +1,17 @@
+__precompile__()
+
 module Timeout
 
-using Distributed
-using Dates
+using Compat.Distributed
+using Compat.Dates
 
 export ptimeout, @ptimeout
+
+if isdefined(Base, :_UVError)
+    using Base: _UVError
+else
+    const _UVError = Base.UVError
+end
 
 """
     ptimeout(f, limit; worker=1, poll=0.5, verbose=true)
@@ -57,7 +65,7 @@ function ptimeout(f::Function, secs::Real; worker=1, poll=0.5, verbose=true)
     # If our interrupts didn't work, forcibly kill the process
     if !isready(channel)
         rc = ccall(:uv_kill, Cint, (Cint, Cint), ospid, Base.SIGTERM)
-        rc == 0 || throw(Base._UVError("kill", rc))
+        rc == 0 || throw(_UVError("kill", rc))
     end
     close(channel)
     false
