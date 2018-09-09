@@ -4,6 +4,7 @@ module Timeout
 
 using Compat.Distributed
 using Compat.Dates
+using Compat: @warn
 
 export ptimeout, @ptimeout
 
