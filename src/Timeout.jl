@@ -64,11 +64,8 @@ function ptimeout(f::Function, secs::Real; worker=1, poll=0.5, verbose=true)
     # Run the function on the given worker, with a channel for communicating with the
     # process so that checking isready won't block
     channel = Channel(1)
-    start = time()
     @async put!(channel, remotecall_fetch(f, worker))
-    while time() - start < secs && !isready(channel)
-        sleep(poll)
-    end
+    timedwait(()->isready(channel), float(secs), pollint=float(poll))
     isready(channel) && return true
     verbose && @warn "Time limit for computation exceeded. Interrupting..."
     patience = 10
