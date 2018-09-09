@@ -51,9 +51,15 @@ function ptimeout(f::Function, secs::Real; worker=1, poll=0.5, verbose=true)
     worker == myid() && throw(ArgumentError("Can't run ptimeout on the current process"))
     poll > 0 || throw(ArgumentError("Can't poll every $poll seconds"))
 
-    # Start by getting the OS process ID for the worker so that we have something to
+    # We need the worker process to be on the same host as the calling process, otherwise
+    # sending a SIGTERM to the result of getpid might kill off something local
+    if gethostname() != remotecall_fetch(gethostname, worker)
+        throw(ArgumentError("Can't run ptimeout with a worker on a different host"))
+    end
+
+    # Now start by getting the OS process ID for the worker so that we have something to
     # forcibly kill if need be
-    ospid = remotecall_fetch(()->ccall(:getpid, Cint, ()), worker)
+    ospid = remotecall_fetch(getpid, worker)
 
     # Run the function on the given worker, with a channel for communicating with the
     # process so that checking isready won't block
