@@ -14,6 +14,12 @@ else
     const _UVError = Base.UVError
 end
 
+if isdefined(Base, :SIGTERM)
+    using Base: SIGTERM
+else
+    const SIGTERM = 15 # just taking the value in 1.0
+end
+
 """
     ptimeout(f, limit; worker=1, poll=0.5, verbose=true)
 
@@ -65,7 +71,7 @@ function ptimeout(f::Function, secs::Real; worker=1, poll=0.5, verbose=true)
     end
     # If our interrupts didn't work, forcibly kill the process
     if !isready(channel)
-        rc = ccall(:uv_kill, Cint, (Cint, Cint), ospid, Base.SIGTERM)
+        rc = ccall(:uv_kill, Cint, (Cint, Cint), ospid, SIGTERM)
         rc == 0 || throw(_UVError("kill", rc))
     end
     close(channel)
